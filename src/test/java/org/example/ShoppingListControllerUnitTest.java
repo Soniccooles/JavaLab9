@@ -4,43 +4,35 @@ import org.example.controller.ShoppingListController;
 import org.example.model.Item;
 import org.example.service.ShoppingListService;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.http.ResponseEntity;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.servlet.MockMvc;
+import java.util.List;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class ShoppingListControllerUnitTest {
+@WebMvcTest(ShoppingListController.class)
+public class ShoppingListControllerUnitTest {
 
-    private final ShoppingListService service = Mockito.mock(ShoppingListService.class);
-    private final ShoppingListController controller = new ShoppingListController(service);
+    @Autowired
+    private MockMvc mockMvc;
 
-    @Test
-    void testAddItem() {
-        Item input = new Item(null, "Bread", false);
-        Item returned = new Item(1L, "Bread", false);
-
-        when(service.addItem(input)).thenReturn(returned);
-
-        Item result = controller.addItemToCart(input);
-
-        assertEquals(returned, result);
-        verify(service, times(1)).addItem(input);
-    }
+    @MockBean
+    private ShoppingListService shoppingListService; // мок-сервис
 
     @Test
-    void testMarkAsPurchased() {
-        Long id = 1L;
-        boolean purchased = true;
-        Item updatedItem = new Item(id, "Milk", purchased);
+    void testGetAllItems() throws Exception {
+        List<Item> items = List.of(new Item(1L, "Milk", false));
+        when(shoppingListService.getAllItems()).thenReturn(items);
 
-        when(service.markAsPurchased(id, purchased)).thenReturn(updatedItem);
+        mockMvc.perform(get("/api/items"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Milk"));
 
-        ResponseEntity<Item> response = controller.markAsPurchased(id, Map.of("purchased", purchased));
-
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(updatedItem, response.getBody());
-        verify(service, times(1)).markAsPurchased(id, purchased);
+        verify(shoppingListService).getAllItems();
     }
 }
+
