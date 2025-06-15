@@ -40,7 +40,6 @@ public class IntegrationTests {
 
     @Test
     public void testMarkAsPurchased() throws Exception {
-        // Сначала добавим
         Item item = new Item();
         item.setName("Bread");
 
@@ -52,7 +51,6 @@ public class IntegrationTests {
 
         Item addedItem = objectMapper.readValue(response, Item.class);
 
-        // Теперь обновим статус
         mockMvc.perform(put("/api/items/" + addedItem.getId() + "/purchased")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("purchased", true))))
